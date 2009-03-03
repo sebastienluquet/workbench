@@ -17,12 +17,12 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL';"
         if a.name != :versions
           sql << "
           ALTER TABLE `#{database}`.`#{a.class_name.constantize.table_name}`
-            ADD CONSTRAINT `fk_#{c.name}_has_many_#{a.name}`
+            ADD CONSTRAINT `#{('fk_' + c.name.to_s + '_has_many_' + a.name.to_s).first(64)}`
             FOREIGN KEY (`#{a.primary_key_name}` )
             REFERENCES `#{database}`.`#{c.table_name}` (`#{c.primary_key}` )
             ON DELETE NO ACTION
             ON UPDATE NO ACTION
-          , ADD INDEX `fk_#{c.name}_has_many_#{a.name}` (`#{a.primary_key_name}` ASC) ;"
+          , ADD INDEX `#{('fk_' + c.name.to_s + '_has_many_' + a.name.to_s).first(64)}` (`#{a.primary_key_name}` ASC) ;"
         else
           sql << "DROP TABLE #{c.table_name.singularize}_versions;"
         end
@@ -31,12 +31,12 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL';"
         if a.name != :versions
           sql << "
           ALTER TABLE `#{database}`.`#{a.class_name.constantize.table_name}`
-            ADD CONSTRAINT `fk_#{c.name}_has_one_#{a.name}`
+            ADD CONSTRAINT `#{('fk_' + c.name.to_s + '_has_one_' + a.name.to_s).first(64)}`
             FOREIGN KEY (`#{a.primary_key_name}` )
             REFERENCES `#{database}`.`#{c.table_name}` (`#{c.primary_key}` )
             ON DELETE NO ACTION
             ON UPDATE NO ACTION
-          , ADD INDEX `fk_#{c.name}_has_one_#{a.name}` (`#{a.primary_key_name}` ASC) ;"
+          , ADD INDEX `#{('fk_' + c.name.to_s + '_has_one_' + a.name.to_s).first(64)}` (`#{a.primary_key_name}` ASC) ;"
         else
           sql << "DROP TABLE #{c.table_name.singularize}_versions;"
         end
@@ -46,12 +46,12 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL';"
           if c.columns_hash[a.primary_key_name.to_s]
             sql << "
             ALTER TABLE `#{database}`.`#{c.table_name}`
-              ADD CONSTRAINT `fk_#{c.name}_belongs_to_#{a.name}`
+              ADD CONSTRAINT `#{('fk_' + c.name.to_s + '_belongs_to_' + a.name.to_s).first(64)}`
               FOREIGN KEY (`#{a.primary_key_name}` )
               REFERENCES `#{database}`.`#{a.class_name.constantize.table_name}` (`#{a.class_name.constantize.primary_key}` )
               ON DELETE NO ACTION
               ON UPDATE NO ACTION
-            , ADD INDEX `fk_#{c.name}_belongs_to_#{a.name}` (`#{a.primary_key_name}` ASC) ;"
+            , ADD INDEX `#{('fk_' + c.name.to_s + '_belongs_to_' + a.name.to_s).first(64)}` (`#{a.primary_key_name}` ASC) ;"
           end
         end
       }

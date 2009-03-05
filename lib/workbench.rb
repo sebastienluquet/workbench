@@ -12,22 +12,22 @@ module Workbench
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL';"
     classes = active_record_models
-    classes.each do |c|
-      c.reflect_on_all_associations(:has_many).delete_if{|e|e.options[:through] or e.options[:finder_sql] or e.class_name.constantize.superclass != ActiveRecord::Base or !classes.include? e.klass}.each{|a|
+    classes.sort{ |x,y| x.class_name <=> y.class_name }.each do |c|
+      c.reflect_on_all_associations(:has_many).delete_if{|e|e.options[:through] or e.options[:finder_sql] or e.class_name.constantize.superclass != ActiveRecord::Base or !classes.include? e.klass}.sort{ |x,y| x.name.to_s <=> y.name.to_s }.each{|a|
         if a.name != :versions
-          sql << "
-          ALTER TABLE `#{database}`.`#{a.class_name.constantize.table_name}`
-            ADD CONSTRAINT `#{('fk_' + c.name.to_s + '_has_many_' + a.name.to_s).first(64)}`
-            FOREIGN KEY (`#{a.primary_key_name}` )
-            REFERENCES `#{database}`.`#{c.table_name}` (`#{c.primary_key}` )
-            ON DELETE NO ACTION
-            ON UPDATE NO ACTION
-          , ADD INDEX `#{('fk_' + c.name.to_s + '_has_many_' + a.name.to_s).first(64)}` (`#{a.primary_key_name}` ASC) ;"
+            sql << "
+            ALTER TABLE `#{database}`.`#{a.class_name.constantize.table_name}`
+              ADD CONSTRAINT `#{('fk_' + c.name.to_s + '_has_many_' + a.name.to_s).first(64)}`
+              FOREIGN KEY (`#{a.primary_key_name}` )
+              REFERENCES `#{database}`.`#{c.table_name}` (`#{c.primary_key}` )
+              ON DELETE NO ACTION
+              ON UPDATE NO ACTION
+            , ADD INDEX `#{('fk_' + c.name.to_s + '_has_many_' + a.name.to_s).first(64)}` (`#{a.primary_key_name}` ASC) ;"
         else
           sql << "DROP TABLE #{c.table_name.singularize}_versions;"
         end
       }
-      c.reflect_on_all_associations(:has_one).delete_if{|e|e.options[:through] or e.options[:finder_sql] or e.class_name.constantize.superclass != ActiveRecord::Base or !classes.include? e.klass}.each{|a|
+      c.reflect_on_all_associations(:has_one).delete_if{|e|e.options[:through] or e.options[:finder_sql] or e.class_name.constantize.superclass != ActiveRecord::Base or !classes.include? e.klass}.sort{ |x,y| x.name.to_s <=> y.name.to_s }.each{|a|
         if a.name != :versions
           sql << "
           ALTER TABLE `#{database}`.`#{a.class_name.constantize.table_name}`
@@ -41,18 +41,18 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL';"
           sql << "DROP TABLE #{c.table_name.singularize}_versions;"
         end
       }
-      c.reflect_on_all_associations(:belongs_to).delete_if{|e|e.options[:through] or e.options[:finder_sql] or e.options[:polymorphic] or e.class_name.constantize.superclass != ActiveRecord::Base or !classes.include? e.klass}.each{|a|
+      c.reflect_on_all_associations(:belongs_to).delete_if{|e|e.options[:through] or e.options[:finder_sql] or e.options[:polymorphic] or e.class_name.constantize.superclass != ActiveRecord::Base or !classes.include? e.klass}.sort{ |x,y| x.name.to_s <=> y.name.to_s }.each{|a|
         unless a.class_name.constantize.reflect_on_all_associations(:has_many).detect{|b| b.class_name.constantize == c} or a.class_name.constantize.reflect_on_all_associations(:has_one).detect{|b| b.class_name.constantize == c}
-          if c.columns_hash[a.primary_key_name.to_s]
-            sql << "
-            ALTER TABLE `#{database}`.`#{c.table_name}`
-              ADD CONSTRAINT `#{('fk_' + c.name.to_s + '_belongs_to_' + a.name.to_s).first(64)}`
-              FOREIGN KEY (`#{a.primary_key_name}` )
-              REFERENCES `#{database}`.`#{a.class_name.constantize.table_name}` (`#{a.class_name.constantize.primary_key}` )
-              ON DELETE NO ACTION
-              ON UPDATE NO ACTION
-            , ADD INDEX `#{('fk_' + c.name.to_s + '_belongs_to_' + a.name.to_s).first(64)}` (`#{a.primary_key_name}` ASC) ;"
-          end
+            if c.columns_hash[a.primary_key_name.to_s]
+              sql << "
+              ALTER TABLE `#{database}`.`#{c.table_name}`
+                ADD CONSTRAINT `#{('fk_' + c.name.to_s + '_belongs_to_' + a.name.to_s).first(64)}`
+                FOREIGN KEY (`#{a.primary_key_name}` )
+                REFERENCES `#{database}`.`#{a.class_name.constantize.table_name}` (`#{a.class_name.constantize.primary_key}` )
+                ON DELETE NO ACTION
+                ON UPDATE NO ACTION
+              , ADD INDEX `#{('fk_' + c.name.to_s + '_belongs_to_' + a.name.to_s).first(64)}` (`#{a.primary_key_name}` ASC) ;"
+            end
         end
       }
     end

@@ -18,14 +18,16 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL';"
           if c.superclass != ActiveRecord::Base and c.superclass.reflect_on_association(a.name)
 
           else
-            sql << "
-            ALTER TABLE `#{database}`.`#{a.class_name.constantize.table_name}`
-              ADD CONSTRAINT `#{('fk_' + c.name.to_s + '_has_many_' + a.name.to_s).first(64)}`
-              FOREIGN KEY (`#{a.primary_key_name}` )
-              REFERENCES `#{database}`.`#{c.table_name}` (`#{c.primary_key}` )
-              ON DELETE NO ACTION
-              ON UPDATE NO ACTION
-            , ADD INDEX `#{('fk_' + c.name.to_s + '_has_many_' + a.name.to_s).first(64)}` (`#{a.primary_key_name}` ASC) ;"
+            if a.klass.columns_hash[a.primary_key_name]
+              sql << "
+              ALTER TABLE `#{database}`.`#{a.class_name.constantize.table_name}`
+                ADD CONSTRAINT `#{('fk_' + c.name.to_s + '_has_many_' + a.name.to_s).first(64)}`
+                FOREIGN KEY (`#{a.primary_key_name}` )
+                REFERENCES `#{database}`.`#{c.table_name}` (`#{c.primary_key}` )
+                ON DELETE NO ACTION
+                ON UPDATE NO ACTION
+              , ADD INDEX `#{('fk_' + c.name.to_s + '_has_many_' + a.name.to_s).first(64)}` (`#{a.primary_key_name}` ASC) ;"
+            end
           end
         else
           sql << "DROP TABLE #{c.table_name.singularize}_versions;"
@@ -33,14 +35,16 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL';"
       }
       c.reflect_on_all_associations(:has_one).delete_if{|e|e.options[:through] or e.options[:finder_sql] or e.class_name.constantize.superclass != ActiveRecord::Base or !classes.include? e.klass}.sort{ |x,y| x.name.to_s <=> y.name.to_s }.each{|a|
         if a.name != :versions
-          sql << "
-          ALTER TABLE `#{database}`.`#{a.class_name.constantize.table_name}`
-            ADD CONSTRAINT `#{('fk_' + c.name.to_s + '_has_one_' + a.name.to_s).first(64)}`
-            FOREIGN KEY (`#{a.primary_key_name}` )
-            REFERENCES `#{database}`.`#{c.table_name}` (`#{c.primary_key}` )
-            ON DELETE NO ACTION
-            ON UPDATE NO ACTION
-          , ADD INDEX `#{('fk_' + c.name.to_s + '_has_one_' + a.name.to_s).first(64)}` (`#{a.primary_key_name}` ASC) ;"
+          if a.klass.columns_hash[a.primary_key_name]
+            sql << "
+            ALTER TABLE `#{database}`.`#{a.class_name.constantize.table_name}`
+              ADD CONSTRAINT `#{('fk_' + c.name.to_s + '_has_one_' + a.name.to_s).first(64)}`
+              FOREIGN KEY (`#{a.primary_key_name}` )
+              REFERENCES `#{database}`.`#{c.table_name}` (`#{c.primary_key}` )
+              ON DELETE NO ACTION
+              ON UPDATE NO ACTION
+            , ADD INDEX `#{('fk_' + c.name.to_s + '_has_one_' + a.name.to_s).first(64)}` (`#{a.primary_key_name}` ASC) ;"
+          end
         else
           sql << "DROP TABLE #{c.table_name.singularize}_versions;"
         end
@@ -77,6 +81,7 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL';"
         end
       }
     end
+    sql << "DROP TABLE schema_migrations;"
     sql << "SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;"

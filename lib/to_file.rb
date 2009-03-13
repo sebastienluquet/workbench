@@ -62,19 +62,27 @@ module ToFile
   file.close
   end
   def metamodel
-    f = File.open(RAILS_ROOT+'/anelis_metamodel.rb','w')
+    f = File.open(RAILS_ROOT+'/agencemo_metamodel.rb','w')
     f.puts "require 'rgen/metamodel_builder'"
-    f.puts "module AnelisMetamodel"
+    f.puts "module AgencemoMetamodel"
 	  f.puts "  extend RGen::MetamodelBuilder::ModuleExtension"
     classes = active_record_models
     classes.each do |c|
       f.puts "  class " + c.name + ' < ' + (c.superclass == ActiveRecord::Base ? 'RGen::MetamodelBuilder::MMBase' : c.superclass.to_s)
+      if c.superclass == ActiveRecord::Base
+        c.content_columns.each do |col|
+          f.puts "    has_attr '#{col.name}', #{'String'}"
+        end
+      end
       f.puts "  end"
     end
     classes.each do |c|
       c.reflect_on_all_associations(:has_many).delete_if{|e|e.options[:through] or e.options[:finder_sql] or e.class_name.constantize.superclass != ActiveRecord::Base or !classes.include? e.klass}.sort{ |x,y| x.name.to_s <=> y.name.to_s }.each{|a|
         if a.name.to_s != 'thumbnails'
-          f.puts "  #{c.name}.one_to_many '#{a.name.to_s}', #{a.class_name}, 'targetState'"
+          if c.superclass != ActiveRecord::Base and c.superclass.reflect_on_association(a.name)
+          else
+            f.puts "  #{c.name}.one_to_many '#{a.name.to_s}', #{a.class_name}, 'targetState'"
+          end
         end
       }
     end

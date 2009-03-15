@@ -62,10 +62,13 @@ module ToFile
   file.close
   end
   def metamodel
-    f = File.open(RAILS_ROOT+'/agencemo_metamodel.rb','w')
+    database = ActiveRecord::Base.connection.current_database.split('_')
+    database.pop
+    database = database.join('_')
+    f = File.open(RAILS_ROOT+"/#{database}_metamodel.rb",'w')
     f.puts "require 'rgen/metamodel_builder'"
-    f.puts "module AgencemoMetamodel"
-	  f.puts "  extend RGen::MetamodelBuilder::ModuleExtension"
+    f.puts "module #{database.camelize}Metamodel"
+    f.puts "  extend RGen::MetamodelBuilder::ModuleExtension"
     classes = active_record_models
     classes.each do |c|
       f.puts "  class " + c.name + ' < ' + (c.superclass == ActiveRecord::Base ? 'RGen::MetamodelBuilder::MMBase' : c.superclass.to_s)
@@ -81,7 +84,7 @@ module ToFile
         if a.name.to_s != 'thumbnails'
           if c.superclass != ActiveRecord::Base and c.superclass.reflect_on_association(a.name)
           else
-            f.puts "  #{c.name}.one_to_many '#{a.name.to_s}', #{a.class_name}, 'targetState'"
+            f.puts "  #{c.name}.has_many '#{a.name.to_s}', #{a.class_name}"
           end
         end
       }

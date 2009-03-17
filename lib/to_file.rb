@@ -61,11 +61,17 @@ module ToFile
   file.puts f
   file.close
   end
+  require 'rgen/array_extensions'
+  require 'rgen/serializer/xmi20_serializer'
   def metamodel
     database = ActiveRecord::Base.connection.current_database.split('_')
     database.pop
     database = database.join('_')
-    f = File.open(RAILS_ROOT+"/#{database}_metamodel.rb",'w')
+    file = File.open(RAILS_ROOT+"/#{database}_metamodel.rb",'w')
+    f = ""
+    def f.puts args
+      self << "#{args}\n"
+    end
     f.puts "require 'rgen/metamodel_builder'"
     f.puts "module #{database.camelize}Metamodel"
     f.puts "  extend RGen::MetamodelBuilder::ModuleExtension"
@@ -90,6 +96,12 @@ module ToFile
       }
     end
     f.puts "end"
-    f.close
+    file.puts f
+    file.close
+    eval f
+    File.open("#{database}_metamodel.ecore","w") do |f|
+      ser = RGen::Serializer::XMI20Serializer.new(f)
+      ser.serialize("ToFile::#{database.camelize}Metamodel".constantize.ecore)
+    end
   end
 end

@@ -73,7 +73,7 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL';"
           sql << "
           ALTER TABLE `#{database}`.`#{a.options[:join_table]}`
             ADD CONSTRAINT `#{constraint_name}`
-            FOREIGN KEY (`#{c.table_name.singularize}_id` )
+            FOREIGN KEY (`#{a.primary_key_name}` )
             REFERENCES `#{database}`.`#{c.table_name}` (`#{c.primary_key}` )
             ON DELETE NO ACTION
             ON UPDATE NO ACTION

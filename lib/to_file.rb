@@ -65,7 +65,7 @@ module ToFile
   require 'rgen/serializer/xmi20_serializer'
   def metamodel
     database = ActiveRecord::Base.connection.current_database.split('_')
-    database.pop
+    database.pop unless database.size == 1
     database = database.join('_')
     file = File.open(RAILS_ROOT+"/#{database}_metamodel.rb",'w')
     f = ""

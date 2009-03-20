@@ -2,10 +2,10 @@ require 'ruby2ruby'
 
 module ToFile
   include Workbench
-  def class_method(meth)
+  def class_method(meth, s = true)
     proc = method(meth)
     (c = Class.new).class_eval { define_method :proc, proc }
-    Ruby2Ruby.new.indent(Ruby2Ruby.translate(c, :proc)).gsub('def proc', "def self.#{meth}")
+    Ruby2Ruby.new.indent(Ruby2Ruby.translate(c, :proc)).gsub('def proc', "def #{s ? "self." : ''}#{meth}")
   end
   def instance_method(meth)
     Ruby2Ruby.new.indent(Ruby2Ruby.translate(self, meth))
@@ -20,6 +20,7 @@ module ToFile
   f.puts "  set_table_name '#{self.table_name}'" if self.singleton_methods(false).include? 'table_name'
   f.puts "  set_inheritance_column '#{self.inheritance_column}'" if self.singleton_methods(false).include? 'inheritance_column'
   f.puts "  set_primary_key '#{self.primary_key}'" if self.singleton_methods(false).include? 'primary_key'
+
   self.reflect_on_all_associations.sort{ |x,y| [x.macro.to_s, x.name.to_s] <=> [y.macro.to_s, y.name.to_s] }.each do |e|
     options = []
     options << (e.class_name == e.send(:derive_class_name) ? nil : ":class_name => '"+e.class_name+"'")
@@ -35,6 +36,7 @@ module ToFile
       f.puts "  " + e.macro.to_s + " :" + e.name.to_s + options
     end
   end
+
   self.reflect_on_all_validations.sort{ |x,y| [x.macro.to_s, x.name.to_s] <=> [y.macro.to_s, y.name.to_s] }.each do |e|
     options = []
     options << ( e.options[:only_integer] ? ":only_integer => #{e.options[:only_integer]}" : nil )

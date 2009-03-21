@@ -48,7 +48,7 @@ module ArBase
       end
   def method_missing method, *args
     if (ActiveRecord::Base.instance_methods + ActiveRecord::Base.protected_instance_methods + ActiveRecord::Base.private_instance_methods).include? method.to_s
-      self.class.module_eval(Ruby2Ruby.translate(ActiveRecord::Base, method))
+      self.class.module_eval(ActiveRecord::Base.instance_method(method))
       return send(method, *args)
     end
     super
@@ -147,7 +147,6 @@ def descends_from_active_record?
   end
   def method_missing(method, *args)
     if ActiveRecord::Base.respond_to?(method) then
-      #module_eval(Ruby2Ruby.translate(ActiveRecord::Base.class_method(method)))
       ArCBase.module_eval(ActiveRecord::Base.class_method(method, false))
       return send(method, *args)
     end
@@ -172,7 +171,7 @@ def descends_from_active_record?
       self
     end
     unless respond_to? name
-      module_eval(Ruby2Ruby.translate(ActiveRecord::Base.class_method(name)))
+      ArCBase.module_eval(ActiveRecord::Base.class_method(name, false))
     end
     sing.send(:alias_method, "original_#{name}", name)
     if block_given? then

@@ -5,10 +5,10 @@ module ToFile
   def class_method(meth, s = true)
     proc = method(meth)
     (c = Class.new).class_eval { define_method :proc, proc }
-    Ruby2Ruby.new.indent(Ruby2Ruby.translate(c, :proc)).gsub('def proc', "def #{s ? "self." : ''}#{meth}")
+    Ruby2Ruby.translate(c, :proc).gsub('def proc', "def #{s ? "self." : ''}#{meth}")
   end
   def instance_method(meth)
-    Ruby2Ruby.new.indent(Ruby2Ruby.translate(self, meth))
+    Ruby2Ruby.translate(self, meth)
   end
   def to_file
   
@@ -18,9 +18,9 @@ module ToFile
     end
     f.puts "class " + self.name + (self.superclass == Object ? '' : ' < ' + self.superclass.to_s)
     f.puts "  include ArBase" if self.ancestors.include? ArBase
-    f.puts "  set_table_name '#{self.table_name}'" if self.singleton_methods(false).include? 'table_name'
+    f.puts "  set_table_name '#{self.table_name}'" if table_name != original_table_name
     f.puts "  set_inheritance_column '#{self.inheritance_column}'" if self.singleton_methods(false).include? 'inheritance_column'
-    f.puts "  set_primary_key '#{self.primary_key}'" if self.singleton_methods(false).include? 'primary_key'
+    f.puts "  set_primary_key '#{self.primary_key}'" if primary_key != original_primary_key
 
     self.reflect_on_all_associations.sort{ |x,y| [x.macro.to_s, x.name.to_s] <=> [y.macro.to_s, y.name.to_s] }.each do |e|
       options = []
@@ -52,12 +52,12 @@ module ToFile
 
     eval f.gsub("class #{self.name}", "class Temp") + ";end"
 
-    (singleton_methods(false) - Temp.singleton_methods ).sort.each do |meth|
-      f.puts class_method(meth)
+    (singleton_methods(false) - Temp.singleton_methods(false) ).sort.each do |meth|
+      f.puts Ruby2Ruby.new.indent(class_method(meth))
     end
 
-    (public_instance_methods(false) - Temp.public_instance_methods).sort.each do |meth|
-      f.puts instance_method(meth)
+    (public_instance_methods(false) - Temp.public_instance_methods(false)).sort.each do |meth|
+      f.puts Ruby2Ruby.new.indent(instance_method(meth))
     end
 
    f.puts "end"

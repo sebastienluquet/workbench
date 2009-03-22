@@ -6,7 +6,8 @@ p = Papa.new
 p.save
   puts Papa.singleton_methods(false).include? 'original_table_name'
 #rescue
-  Papa.extend ToFile
-  Papa.to_file
+  Entity.extend ToFile
+  Entity.table_name
+  Entity.to_file
 #  raise
 #end

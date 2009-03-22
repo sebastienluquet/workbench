@@ -1,6 +1,10 @@
 require 'ruby2ruby'
 
 module ToFile
+  def self.extended(mod)
+    mod.instance_variable_set :@public_instance_methods, mod.public_instance_methods(false)
+    mod.instance_variable_set :@singleton_methods, mod.singleton_methods(false)
+  end
   include Workbench
   def class_method(meth, s = true)
     proc = method(meth)
@@ -53,11 +57,11 @@ module ToFile
     eval f.gsub("class #{self.name}", "class Temp") + ";end"
 
     (singleton_methods(false) - Temp.singleton_methods(false) ).sort.each do |meth|
-      f.puts Ruby2Ruby.new.indent(class_method(meth))
+      f.puts Ruby2Ruby.new.indent(class_method(meth)) if @singleton_methods.include? meth
     end
 
     (public_instance_methods(false) - Temp.public_instance_methods(false)).sort.each do |meth|
-      f.puts Ruby2Ruby.new.indent(instance_method(meth))
+      f.puts Ruby2Ruby.new.indent(instance_method(meth)) if @public_instance_methods.include? meth
     end
 
    f.puts "end"

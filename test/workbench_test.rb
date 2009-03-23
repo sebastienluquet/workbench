@@ -9,6 +9,7 @@ end
 class WorkbenchTest < Test::Unit::TestCase
   def setup
     EmptyClass.extend ToFile
+    ActiveRecordBaseClass.extend ToFile
   end
   # Replace this with your real tests.
   def test_file_path_in_order_to_write_model_in_plugin_directory
@@ -17,5 +18,9 @@ class WorkbenchTest < Test::Unit::TestCase
 
   def test_empty_class
     EmptyClass.to_file
+  end
+
+  def test_active_record_base_class
+    ActiveRecordBaseClass.to_file
   end
 end

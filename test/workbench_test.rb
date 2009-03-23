@@ -9,6 +9,7 @@ end
 class WorkbenchTest < Test::Unit::TestCase
   def setup
     EmptyClass.extend ToFile
+    EmptyArBaseClass.extend ToFile
     ActiveRecordBaseClass.extend ToFile
   end
   # Replace this with your real tests.
@@ -22,5 +23,9 @@ class WorkbenchTest < Test::Unit::TestCase
 
   def test_active_record_base_class
     ActiveRecordBaseClass.to_file
+  end
+
+  def test_a_record_base_class
+    EmptyArBaseClass.to_file
   end
 end

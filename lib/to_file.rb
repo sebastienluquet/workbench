@@ -22,35 +22,37 @@ module ToFile
     end
     f.puts "class " + self.name + (self.superclass == Object ? '' : ' < ' + self.superclass.to_s)
     f.puts "  include ArBase" if self.ancestors.include? ArBase
-    f.puts "  set_table_name '#{self.table_name}'" if table_name != original_table_name
-    f.puts "  set_inheritance_column '#{self.inheritance_column}'" if self.singleton_methods(false).include? 'inheritance_column'
-    f.puts "  set_primary_key '#{self.primary_key}'" if primary_key != original_primary_key
+    f.puts "  set_table_name '#{self.table_name}'" if respond_to? 'table_name' and table_name != original_table_name
+    f.puts "  set_inheritance_column '#{self.inheritance_column}'" if respond_to? 'inheritance_column' and self.singleton_methods(false).include? 'inheritance_column'
+    f.puts "  set_primary_key '#{self.primary_key}'" if respond_to? 'primary_key' and primary_key != original_primary_key
 
-    self.reflect_on_all_associations.sort{ |x,y| [x.macro.to_s, x.name.to_s] <=> [y.macro.to_s, y.name.to_s] }.each do |e|
-      options = []
-      options << (e.class_name == e.send(:derive_class_name) ? nil : ":class_name => '"+e.class_name+"'")
-      options << (e.primary_key_name == e.send(:derive_primary_key_name) ? nil : (e.options[:foreign_key] ? ":foreign_key => :"+e.options[:foreign_key].to_s : nil ))
-      options << ( e.options[:conditions] ? ":conditions => \"#{e.options[:conditions]}\"" : nil )
-      options << ( e.options[:dependent] ? ":dependent => :#{e.options[:dependent]}" : nil )
-      options << ( e.options[:finder_sql] ? "\n    :finder_sql => '#{e.options[:finder_sql]}'" : nil )
-      options << ( e.options[:polymorphic] ? ":polymorphic => true" : nil )
-      options << ( e.options[:through] ? ":through => :#{e.options[:through]}" : nil )
-      if e.active_record == self
-        options = options.compact.join(', ')
-        options = ", " + options unless options.blank?
-        f.puts "  " + e.macro.to_s + " :" + e.name.to_s + options
+    if respond_to? 'reflect_on_all_associations'
+      self.reflect_on_all_associations.sort{ |x,y| [x.macro.to_s, x.name.to_s] <=> [y.macro.to_s, y.name.to_s] }.each do |e|
+        options = []
+        options << (e.class_name == e.send(:derive_class_name) ? nil : ":class_name => '"+e.class_name+"'")
+        options << (e.primary_key_name == e.send(:derive_primary_key_name) ? nil : (e.options[:foreign_key] ? ":foreign_key => :"+e.options[:foreign_key].to_s : nil ))
+        options << ( e.options[:conditions] ? ":conditions => \"#{e.options[:conditions]}\"" : nil )
+        options << ( e.options[:dependent] ? ":dependent => :#{e.options[:dependent]}" : nil )
+        options << ( e.options[:finder_sql] ? "\n    :finder_sql => '#{e.options[:finder_sql]}'" : nil )
+        options << ( e.options[:polymorphic] ? ":polymorphic => true" : nil )
+        options << ( e.options[:through] ? ":through => :#{e.options[:through]}" : nil )
+        if e.active_record == self
+          options = options.compact.join(', ')
+          options = ", " + options unless options.blank?
+          f.puts "  " + e.macro.to_s + " :" + e.name.to_s + options
+        end
       end
-    end
 
-    self.reflect_on_all_validations.sort{ |x,y| [x.macro.to_s, x.name.to_s] <=> [y.macro.to_s, y.name.to_s] }.each do |e|
-      options = []
-      options << ( e.options[:only_integer] ? ":only_integer => #{e.options[:only_integer]}" : nil )
-      options << ( e.options[:message] ? ":message => \"#{e.options[:message]}\"" : nil )
-      options << ( e.options[:scope] ? ":scope => :#{e.options[:scope]}" : nil )
-      if e.active_record == self
-        options = options.compact.join(', ')
-        options = ", " + options unless options.blank?
-        f.puts "  " + e.macro.to_s + " :" + e.name.to_s + options
+      self.reflect_on_all_validations.sort{ |x,y| [x.macro.to_s, x.name.to_s] <=> [y.macro.to_s, y.name.to_s] }.each do |e|
+        options = []
+        options << ( e.options[:only_integer] ? ":only_integer => #{e.options[:only_integer]}" : nil )
+        options << ( e.options[:message] ? ":message => \"#{e.options[:message]}\"" : nil )
+        options << ( e.options[:scope] ? ":scope => :#{e.options[:scope]}" : nil )
+        if e.active_record == self
+          options = options.compact.join(', ')
+          options = ", " + options unless options.blank?
+          f.puts "  " + e.macro.to_s + " :" + e.name.to_s + options
+        end
       end
     end
 
@@ -65,9 +67,12 @@ module ToFile
     end
 
    f.puts "end"
-   File.open(RAILS_ROOT+'/app/models/'+self.to_s.underscore+'.rb','w') do |file|
+   File.open(to_file_path,'w') do |file|
      file.puts f
    end
+  end
+  def to_file_path
+    RAILS_ROOT+'/app/models/'+self.to_s.underscore+'.rb'
   end
   require 'rgen/array_extensions'
   require 'rgen/serializer/xmi20_serializer'

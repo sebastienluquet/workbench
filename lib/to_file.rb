@@ -12,7 +12,15 @@ module ToFile
     Ruby2Ruby.translate(c, :proc).gsub('def proc', "def #{s ? "self." : ''}#{meth}")
   end
   def instance_method(meth)
-    Ruby2Ruby.translate(self, meth)
+    begin
+      Ruby2Ruby.translate(self, meth)
+    rescue
+      if a = ancestors.detect{|m|(m.instance_methods(false)+m.protected_instance_methods(false)+m.private_instance_methods(false)).include? meth.to_s}
+        Ruby2Ruby.translate(a, meth)
+      else
+        raise
+      end
+    end
   end
   def to_file
   

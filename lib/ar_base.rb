@@ -5,22 +5,22 @@ module ArBase
     ActiveRecord::Base.extend ToFile
     mod.extend ArCBase
 
-    mod.extend ActiveRecord::QueryCache::ClassMethods #ok
-    mod.module_eval do
-      include ActiveRecord::Validations #4
-      #include ActiveRecord::Locking::Optimistic, ActiveRecord::Locking::Pessimistic
-      include ActiveRecord::AttributeMethods #1
-      include ActiveRecord::Dirty #3
-      include ActiveRecord::Callbacks, ActiveRecord::Observing, ActiveRecord::Timestamp #5
-      include ActiveRecord::Associations, ActiveRecord::AssociationPreload, ActiveRecord::NamedScope
-
-    # AutosaveAssociation needs to be included before Transactions, because we want
-    # #save_with_autosave_associations to be wrapped inside a transaction.
-      include ActiveRecord::AutosaveAssociation, ActiveRecord::NestedAttributes #3
-
-      include ActiveRecord::Aggregations, ActiveRecord::Transactions, ActiveRecord::Reflection, ActiveRecord::Batches, ActiveRecord::Calculations, ActiveRecord::Serialization #2
-      self.default_scoping = []
-    end
+#    mod.extend ActiveRecord::QueryCache::ClassMethods #ok
+#    mod.module_eval do
+#      include ActiveRecord::Validations #4
+#      #include ActiveRecord::Locking::Optimistic, ActiveRecord::Locking::Pessimistic
+#      include ActiveRecord::AttributeMethods #1
+#      include ActiveRecord::Dirty #3
+#      include ActiveRecord::Callbacks, ActiveRecord::Observing, ActiveRecord::Timestamp #5
+#      include ActiveRecord::Associations, ActiveRecord::AssociationPreload, ActiveRecord::NamedScope
+#
+#    # AutosaveAssociation needs to be included before Transactions, because we want
+#    # #save_with_autosave_associations to be wrapped inside a transaction.
+#      include ActiveRecord::AutosaveAssociation, ActiveRecord::NestedAttributes #3
+#
+#      include ActiveRecord::Aggregations, ActiveRecord::Transactions, ActiveRecord::Reflection, ActiveRecord::Batches, ActiveRecord::Calculations, ActiveRecord::Serialization #2
+#      self.default_scoping = []
+#    end
     def mod.instance_method_already_implemented?(method_name)
 #        method_name = method_name.to_s
 #        return true if method_name =~ /^id(=$|\?$|$)/
@@ -92,6 +92,15 @@ module ArBase
         )
       end
 
+      def id
+        attr_name = self.class.primary_key
+        column = column_for_attribute(attr_name)
+
+        self.class.send(:define_read_method, :id, attr_name, column)
+        # now that the method exists, call it
+        self.send attr_name.to_sym
+
+      end
       # Creates a record with values matching those of the instance attributes
       # and returns its id.
       def create

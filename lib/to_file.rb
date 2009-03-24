@@ -20,7 +20,7 @@ module ToFile
     def f.puts args
       self << "#{args}\n"
     end
-    f.puts "class " + self.name + (self.superclass == Object ? '' : ' < ' + self.superclass.to_s)
+    
     f.puts "  include ArBase" if self.ancestors.include? ArBase
     f.puts "  set_table_name '#{self.table_name}'" if respond_to? 'table_name' and table_name != original_table_name
     f.puts "  set_inheritance_column '#{self.inheritance_column}'" if respond_to? 'inheritance_column' and self.singleton_methods(false).include? 'inheritance_column'
@@ -56,19 +56,21 @@ module ToFile
       end
     end
 
-    eval f.gsub("class #{self.name}", "class Temp") + ";end"
+    c = Class.new self.superclass
+    c.module_eval{f}
 
-    (singleton_methods(false) - Temp.singleton_methods(false) ).sort.each do |meth|
+    (singleton_methods(false) - c.singleton_methods(false) ).sort.each do |meth|
       f.puts Ruby2Ruby.new.indent(class_method(meth)) if @singleton_methods.include? meth
     end
 
-    (public_instance_methods(false) - Temp.public_instance_methods(false)).sort.each do |meth|
+    (public_instance_methods(false) - c.public_instance_methods(false)).sort.each do |meth|
       f.puts Ruby2Ruby.new.indent(instance_method(meth)) if @public_instance_methods.include? meth
     end
 
-   f.puts "end"
    File.open(to_file_path,'w') do |file|
-     file.puts f
+     file.puts "class " + self.name + (self.superclass == Object ? '' : ' < ' + self.superclass.to_s)
+     file.puts f unless f.blank?
+     file.puts "end"
    end
   end
   def to_file_path

@@ -36,8 +36,12 @@ class WorkbenchTest < Test::Unit::TestCase
   def test_a_record_base_class
     EmptyArBaseClass.to_file
   end
-  
+
   def test_active_record_base_class_set_table_name
     ActiveRecordBaseClassSetTableName.to_file
+  end
+
+  def test_empty_ar_base_class_with_set_table_name
+    EmptyArBaseClassWithSetTableName.to_file
   end
 end

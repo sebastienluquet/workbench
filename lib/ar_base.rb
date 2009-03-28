@@ -3,6 +3,7 @@ module ArBase
   include ArCBase
   def self.included(mod)
     ActiveRecord::Base.extend ToFile
+    mod.extend ToFile
     mod.extend ArCBase
 
 #    mod.extend ActiveRecord::QueryCache::ClassMethods #ok

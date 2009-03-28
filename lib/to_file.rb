@@ -2,8 +2,8 @@ require 'ruby2ruby'
 
 module ToFile
   def self.extended(mod)
-    mod.instance_variable_set :@public_instance_methods, mod.public_instance_methods(false)
-    mod.instance_variable_set :@singleton_methods, mod.singleton_methods(false)
+    mod.instance_variable_set :@public_instance_methods, mod.public_instance_methods(false) if mod.instance_variable_get(:@public_instance_methods).nil?
+    mod.instance_variable_set :@singleton_methods, mod.singleton_methods(false) if mod.instance_variable_get(:@singleton_methods).nil?
   end
   include Workbench
   def class_method(meth, s = true)

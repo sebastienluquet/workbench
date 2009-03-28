@@ -9,9 +9,6 @@ end
 class WorkbenchTest < Test::Unit::TestCase
   def setup
     EmptyClass.extend ToFile
-    EmptyArBaseClass.extend ToFile
-    ActiveRecordBaseClass.extend ToFile
-    ActiveRecordBaseClassSetTableName.extend ToFile
     p = Papa.new
     p.save
     Papa.table_name
@@ -30,6 +27,7 @@ class WorkbenchTest < Test::Unit::TestCase
   end
 
   def test_active_record_base_class
+    ActiveRecordBaseClass.extend ToFile
     ActiveRecordBaseClass.to_file
   end
 
@@ -38,6 +36,7 @@ class WorkbenchTest < Test::Unit::TestCase
   end
 
   def test_active_record_base_class_set_table_name
+    ActiveRecordBaseClassSetTableName.extend ToFile
     ActiveRecordBaseClassSetTableName.to_file
   end
 

@@ -1,8 +1,8 @@
+ActiveRecord::Base.extend ToFile
 module ArBase
   extend ArCBase
   include ArCBase
   def self.included(mod)
-    ActiveRecord::Base.extend ToFile
     mod.extend ToFile
     mod.extend ArCBase
 

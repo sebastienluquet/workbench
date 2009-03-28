@@ -66,6 +66,7 @@ module ToFile
 
     c = Class.new self.superclass
     c.module_eval{f}
+    c.table_name  if c.respond_to? 'table_name'
 
     (singleton_methods(false) - c.singleton_methods(false) ).sort.each do |meth|
       f.puts Ruby2Ruby.new.indent(class_method(meth)) if @singleton_methods.include? meth

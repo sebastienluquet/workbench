@@ -21,15 +21,15 @@ module ArBase
 #      include ActiveRecord::Aggregations, ActiveRecord::Transactions, ActiveRecord::Reflection, ActiveRecord::Batches, ActiveRecord::Calculations, ActiveRecord::Serialization #2
 #      self.default_scoping = []
 #    end
-    def mod.instance_method_already_implemented?(method_name)
+#    def mod.instance_method_already_implemented?(method_name)
 #        method_name = method_name.to_s
 #        return true if method_name =~ /^id(=$|\?$|$)/
 #        @_defined_class_methods         ||= ancestors.first(ancestors.index(ActiveRecord::Base)).sum([]) { |m| m.public_instance_methods(false) | m.private_instance_methods(false) | m.protected_instance_methods(false) }.map(&:to_s).to_set
 #        @@_defined_activerecord_methods ||= (ActiveRecord::Base.public_instance_methods(false) | ActiveRecord::Base.private_instance_methods(false) | ActiveRecord::Base.protected_instance_methods(false)).map(&:to_s).to_set
 #        raise DangerousAttributeError, "#{method_name} is defined by ActiveRecord" if @@_defined_activerecord_methods.include?(method_name)
 #        @_defined_class_methods.include?(method_name)
-    false
-    end
+#    false
+#    end
   end
       def attributes_from_column_definition
         self.class.columns.inject({}) do |attributes, column|

@@ -30,7 +30,7 @@ module ToFile
     end
     
     f.puts "  include ArBase" if self.ancestors.include? ArBase
-    f.puts "  set_table_name '#{self.table_name}'" if respond_to? 'table_name' and table_name != original_table_name
+    f.puts "  set_table_name '#{self.table_name}'" if respond_to? 'original_table_name' #and table_name != original_table_name
     f.puts "  set_inheritance_column '#{self.inheritance_column}'" if respond_to? 'inheritance_column' and self.singleton_methods(false).include? 'inheritance_column'
     f.puts "  set_primary_key '#{self.primary_key}'" if respond_to? 'primary_key' and primary_key != original_primary_key
 

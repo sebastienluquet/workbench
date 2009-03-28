@@ -32,7 +32,7 @@ module ToFile
     f.puts "  include ArBase" if self.ancestors.include? ArBase
     f.puts "  set_table_name '#{self.table_name}'" if respond_to? 'original_table_name' #and table_name != original_table_name
     f.puts "  set_inheritance_column '#{self.inheritance_column}'" if respond_to? 'inheritance_column' and self.singleton_methods(false).include? 'inheritance_column'
-    f.puts "  set_primary_key '#{self.primary_key}'" if respond_to? 'primary_key' and primary_key != original_primary_key
+    f.puts "  set_primary_key '#{self.primary_key}'" if respond_to? 'primary_key'  if respond_to? 'original_primary_key' #and primary_key != original_primary_key
 
     if respond_to? 'reflect_on_all_associations'
       self.reflect_on_all_associations.sort{ |x,y| [x.macro.to_s, x.name.to_s] <=> [y.macro.to_s, y.name.to_s] }.each do |e|
@@ -53,9 +53,14 @@ module ToFile
 
       self.reflect_on_all_validations.sort{ |x,y| [x.macro.to_s, x.name.to_s] <=> [y.macro.to_s, y.name.to_s] }.each do |e|
         options = []
+        options << ( e.options[:is] ? ":is => #{e.options[:is]}" : nil )
         options << ( e.options[:only_integer] ? ":only_integer => #{e.options[:only_integer]}" : nil )
         options << ( e.options[:message] ? ":message => \"#{e.options[:message]}\"" : nil )
         options << ( e.options[:scope] ? ":scope => :#{e.options[:scope]}" : nil )
+        options << ( e.options[:minimum] ? ":minimum => #{e.options[:minimum]}" : nil )
+        options << ( e.options[:maximum] ? ":maximum => #{e.options[:maximum]}" : nil )
+        options << ( e.options[:with] ? ":with => #{e.options[:with]}" : nil )
+        options << ( e.options[:within] ? ":within => #{e.options[:within]}" : nil )
         if e.active_record == self
           options = options.compact.join(', ')
           options = ", " + options unless options.blank?
@@ -63,19 +68,17 @@ module ToFile
         end
       end
     end
+    eval "class #{self.name} #{(self.superclass == Object ? '' : ' < ' + self.superclass.to_s)};#{f};end"
 
-    c = Class.new self.superclass
-    c.module_eval{f}
-    c.table_name  if c.respond_to? 'table_name'
-
-    (singleton_methods(false) - c.singleton_methods(false) ).sort.each do |meth|
+    (singleton_methods(false) - self.name.constantize.singleton_methods(false) ).sort.each do |meth|
       f.puts Ruby2Ruby.new.indent(class_method(meth)) if @singleton_methods.include? meth
     end
 
-    (public_instance_methods(false) - c.public_instance_methods(false)).sort.each do |meth|
+    (public_instance_methods(false) - self.name.constantize.public_instance_methods(false)).sort.each do |meth|
       f.puts Ruby2Ruby.new.indent(instance_method(meth)) if @public_instance_methods.include? meth
     end
 
+   #send :remove_const, Temp if const_defined? :Temp
    File.open(to_file_path,'w') do |file|
      file.puts "class " + self.name + (self.superclass == Object ? '' : ' < ' + self.superclass.to_s)
      file.puts f unless f.blank?

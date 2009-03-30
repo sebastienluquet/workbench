@@ -58,4 +58,9 @@ class WorkbenchTest < Test::Unit::TestCase
   def test_active_record_with_include
     ActiveRecordWithIncludeClass.to_file
   end
+
+  def test_active_record_with_attr_accessor
+    ActiveRecordWithAttrAccessorClass.extend ToFile
+    ActiveRecordWithAttrAccessorClass.to_file
+  end
 end

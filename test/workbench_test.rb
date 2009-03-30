@@ -50,4 +50,8 @@ class WorkbenchTest < Test::Unit::TestCase
     ArBaseWithClassMethodClass.update_singleton_methods
     ArBaseWithClassMethodClass.to_file
   end
+
+  def test_ar_base_with_include_class
+    ArBaseWithIncludeClass.to_file
+  end
 end

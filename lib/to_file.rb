@@ -1,10 +1,24 @@
 require 'ruby2ruby'
 
 module ToFile
-  def self.extended(mod)
-    mod.instance_variable_set :@public_instance_methods, mod.public_instance_methods(false) if mod.instance_variable_get(:@public_instance_methods).nil?
-    mod.instance_variable_set :@singleton_methods, mod.singleton_methods(false) if mod.instance_variable_get(:@singleton_methods).nil?
+  def update_methods
+    update_instance_methods
+    update_singleton_methods
   end
+
+  def update_instance_methods
+    instance_variable_set :@public_instance_methods, public_instance_methods(false)
+  end
+
+  def update_singleton_methods
+    instance_variable_set :@singleton_methods, singleton_methods(false)
+  end
+
+  def self.extended(mod)
+    mod.update_instance_methods if mod.instance_variable_get(:@public_instance_methods).nil?
+    mod.update_singleton_methods if mod.instance_variable_get(:@singleton_methods).nil?
+  end
+
   include Workbench
   def class_method(meth, s = true)
     proc = method(meth)
@@ -13,7 +27,17 @@ module ToFile
   end
   def instance_method(meth)
     begin
-      Ruby2Ruby.translate(self, meth)
+      t = Ruby2Ruby.translate(self, meth)
+      if t['attr_reader ']
+        if Ruby2Ruby.translate(self, "#{meth}=")['attr_writer ']
+          t.gsub!('reader', 'accessor')
+        end
+      elsif t['attr_writer ']
+        if Ruby2Ruby.translate(self, "#{meth.chop}")['attr_reader ']
+          t = nil
+        end
+      end
+      t
     rescue
       if a = ancestors.detect{|m|(m.instance_methods(false)+m.protected_instance_methods(false)+m.private_instance_methods(false)).include? meth.to_s}
         Ruby2Ruby.translate(a, meth)
@@ -30,6 +54,13 @@ module ToFile
     end
     
     f.puts "  include ArBase" if self.ancestors.include? ArBase
+
+    included_modules = self.ancestors
+    included_modules.shift
+    while (m = included_modules.shift) and !m.is_a?(Class) and m != ArBase do
+      f.puts "  include #{m}"
+    end
+
     f.puts "  set_table_name '#{self.table_name}'" if respond_to? 'original_table_name' #and table_name != original_table_name
     f.puts "  set_inheritance_column '#{self.inheritance_column}'" if respond_to? 'inheritance_column' and self.singleton_methods(false).include? 'inheritance_column'
     f.puts "  set_primary_key '#{self.primary_key}'" if respond_to? 'primary_key'  if respond_to? 'original_primary_key' #and primary_key != original_primary_key
@@ -43,6 +74,7 @@ module ToFile
         options << ( e.options[:dependent] ? ":dependent => :#{e.options[:dependent]}" : nil )
         options << ( e.options[:finder_sql] ? "\n    :finder_sql => '#{e.options[:finder_sql]}'" : nil )
         options << ( e.options[:polymorphic] ? ":polymorphic => true" : nil )
+        options << ( e.options[:source] ? ":source => :#{e.options[:source]}" : nil )
         options << ( e.options[:through] ? ":through => :#{e.options[:through]}" : nil )
         if e.active_record == self
           options = options.compact.join(', ')
@@ -50,7 +82,15 @@ module ToFile
           f.puts "  " + e.macro.to_s + " :" + e.name.to_s + options
         end
       end
-
+      if protected_attributes
+        protected_attributes.each{|a|
+          f.puts "  attr_protected :#{a}"
+        }
+      elsif accessible_attributes
+        accessible_attributes.each{|a|
+          f.puts "  attr_accessible :#{a}"
+        }
+      end
       self.reflect_on_all_validations.sort{ |x,y| [x.macro.to_s, x.name.to_s] <=> [y.macro.to_s, y.name.to_s] }.each do |e|
         options = []
         options << ( e.options[:is] ? ":is => #{e.options[:is]}" : nil )
@@ -68,14 +108,20 @@ module ToFile
         end
       end
     end
-    eval "class #{self.name} #{(self.superclass == Object ? '' : ' < ' + self.superclass.to_s)};#{f};end"
+    eval "class #{self.name}Temp #{(self.superclass == Object ? '' : ' < ' + self.superclass.to_s)};#{f};end"
 
-    (singleton_methods(false) - self.name.constantize.singleton_methods(false) ).sort.each do |meth|
-      f.puts Ruby2Ruby.new.indent(class_method(meth)) if @singleton_methods.include? meth
+    (singleton_methods(false) - "ToFile::#{self.name}Temp".constantize.singleton_methods(false) ).sort.each do |meth|
+      if @singleton_methods.include? meth
+        t = Ruby2Ruby.new.indent(class_method(meth))
+        f.puts t unless t.blank?
+      end
     end
 
-    (public_instance_methods(false) - self.name.constantize.public_instance_methods(false)).sort.each do |meth|
-      f.puts Ruby2Ruby.new.indent(instance_method(meth)) if @public_instance_methods.include? meth
+    (public_instance_methods(false) - "ToFile::#{self.name}Temp".constantize.public_instance_methods(false)).sort.each do |meth|
+      if @public_instance_methods.include? meth
+        t = Ruby2Ruby.new.indent(instance_method(meth))
+        f.puts t unless t.blank?
+      end
     end
 
    #send :remove_const, Temp if const_defined? :Temp

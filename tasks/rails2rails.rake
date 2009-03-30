@@ -3,13 +3,13 @@ namespace :rails2rails do
   task :regenerate_models => :environment do
   include Workbench
   def active_record_models
-    [Department, Country, Continent ]
+    [ BinomialConnectedComponent ]
   end
   active_record_models.each{|m|
     m.extend ToFile
   }
   active_record_models.each{|m|
-    m.to_file if m != User
+    m.to_file if m != User and m != Stage
   }
   end
 end

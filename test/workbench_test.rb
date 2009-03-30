@@ -78,4 +78,9 @@ class WorkbenchTest < Test::Unit::TestCase
     ActiveRecordWithAttrProtectedClass.extend ToFile
     ActiveRecordWithAttrProtectedClass.to_file
   end
+
+  def test_active_record_with_attr_accessible
+    ActiveRecordWithAttrAccessibleClass.extend ToFile
+    ActiveRecordWithAttrAccessibleClass.to_file
+  end
 end

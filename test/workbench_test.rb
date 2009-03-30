@@ -83,4 +83,9 @@ class WorkbenchTest < Test::Unit::TestCase
     ActiveRecordWithAttrAccessibleClass.extend ToFile
     ActiveRecordWithAttrAccessibleClass.to_file
   end
+
+  def test_active_record_inherited_class
+    ActiveRecordInheritedClass.extend ToFile
+    ActiveRecordInheritedClass.to_file
+  end
 end

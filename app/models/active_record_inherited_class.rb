@@ -1,0 +1,2 @@
+class ActiveRecordInheritedClass < ActiveRecordBaseClass
+end

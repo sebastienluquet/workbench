@@ -1,6 +1,6 @@
 class ArBaseWithInstanceMethodClass
   include ArBase
   def instance_meth
-    'foo'
+    "foo"
   end
 end

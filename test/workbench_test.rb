@@ -54,4 +54,8 @@ class WorkbenchTest < Test::Unit::TestCase
   def test_ar_base_with_include_class
     ArBaseWithIncludeClass.to_file
   end
+
+  def test_active_record_with_include
+    ActiveRecordWithIncludeClass.to_file
+  end
 end

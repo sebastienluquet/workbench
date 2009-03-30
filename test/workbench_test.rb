@@ -73,4 +73,9 @@ class WorkbenchTest < Test::Unit::TestCase
     ActiveRecordWithAttrWriterClass.extend ToFile
     ActiveRecordWithAttrWriterClass.to_file
   end
+
+  def test_active_record_with_attr_protected
+    ActiveRecordWithAttrProtectedClass.extend ToFile
+    ActiveRecordWithAttrProtectedClass.to_file
+  end
 end

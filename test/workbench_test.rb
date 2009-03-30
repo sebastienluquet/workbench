@@ -63,4 +63,14 @@ class WorkbenchTest < Test::Unit::TestCase
     ActiveRecordWithAttrAccessorClass.extend ToFile
     ActiveRecordWithAttrAccessorClass.to_file
   end
+
+  def test_active_record_with_attr_reader
+    ActiveRecordWithAttrReaderClass.extend ToFile
+    ActiveRecordWithAttrReaderClass.to_file
+  end
+
+  def test_active_record_with_attr_writer
+    ActiveRecordWithAttrWriterClass.extend ToFile
+    ActiveRecordWithAttrWriterClass.to_file
+  end
 end

@@ -9,10 +9,10 @@ end
 class WorkbenchTest < Test::Unit::TestCase
   def setup
     EmptyClass.extend ToFile
-    p = Papa.new
-    p.save
-    Papa.table_name
-    puts Papa.singleton_methods(false).include?('original_table_name')
+#    p = Papa.new
+#    p.save
+#    Papa.table_name
+#    puts Papa.singleton_methods(false).include?('original_table_name')
   end
   # Replace this with your real tests.
   def test_file_path_in_order_to_write_model_in_plugin_directory

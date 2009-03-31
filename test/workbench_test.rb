@@ -88,4 +88,9 @@ class WorkbenchTest < Test::Unit::TestCase
     ActiveRecordInheritedClass.extend ToFile
     ActiveRecordInheritedClass.to_file
   end
+
+  def test_active_record_with_habtm_class
+    ActiveRecordWithHabtmClass.extend ToFile
+    ActiveRecordWithHabtmClass.to_file
+  end
 end

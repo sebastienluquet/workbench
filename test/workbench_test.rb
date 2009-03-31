@@ -93,4 +93,9 @@ class WorkbenchTest < Test::Unit::TestCase
     ActiveRecordWithHabtmClass.extend ToFile
     ActiveRecordWithHabtmClass.to_file
   end
+
+  def test_active_record_with_habtm_with_join_table_class
+    ActiveRecordWithHabtmWithJoinTableClass.extend ToFile
+    ActiveRecordWithHabtmWithJoinTableClass.to_file
+  end
 end

@@ -5,6 +5,7 @@ module ToFile
     mod.instance_variable_set :@public_instance_methods, mod.public_instance_methods(false) if mod.instance_variable_get(:@public_instance_methods).nil?
     mod.instance_variable_set :@singleton_methods, mod.singleton_methods(false) if mod.instance_variable_get(:@singleton_methods).nil?
   end
+
   include Workbench
   def class_method(meth, s = true)
     proc = method(meth)
@@ -28,12 +29,12 @@ module ToFile
     def f.puts args
       self << "#{args}\n"
     end
-    
+
     f.puts "  include ArBase" if self.ancestors.include? ArBase
     f.puts "  set_table_name '#{self.table_name}'" if respond_to? 'original_table_name' #and table_name != original_table_name
     f.puts "  set_inheritance_column '#{self.inheritance_column}'" if respond_to? 'inheritance_column' and self.singleton_methods(false).include? 'inheritance_column'
     f.puts "  set_primary_key '#{self.primary_key}'" if respond_to? 'primary_key'  if respond_to? 'original_primary_key' #and primary_key != original_primary_key
-
+    
     if respond_to? 'reflect_on_all_associations'
       self.reflect_on_all_associations.sort{ |x,y| [x.macro.to_s, x.name.to_s] <=> [y.macro.to_s, y.name.to_s] }.each do |e|
         options = []
@@ -42,14 +43,15 @@ module ToFile
         options << ( e.options[:conditions] ? ":conditions => \"#{e.options[:conditions]}\"" : nil )
         options << ( e.options[:dependent] ? ":dependent => :#{e.options[:dependent]}" : nil )
         options << ( e.options[:finder_sql] ? "\n    :finder_sql => '#{e.options[:finder_sql]}'" : nil )
+        options << ":join_table => '#{e.options[:join_table]}'" if send(:join_table_name, undecorated_table_name(self.to_s), undecorated_table_name(e.class_name)) != e.options[:join_table]
         options << ( e.options[:polymorphic] ? ":polymorphic => true" : nil )
         options << ( e.options[:through] ? ":through => :#{e.options[:through]}" : nil )
         if e.active_record == self
-          options = options.compact.join(', ')
-          options = ", " + options unless options.blank?
-          f.puts "  " + e.macro.to_s + " :" + e.name.to_s + options
+            options = options.compact.join(', ')
+            options = ", " + options unless options.blank?
+            f.puts "  " + e.macro.to_s + " :" + e.name.to_s + options
+          end
         end
-      end
 
       self.reflect_on_all_validations.sort{ |x,y| [x.macro.to_s, x.name.to_s] <=> [y.macro.to_s, y.name.to_s] }.each do |e|
         options = []

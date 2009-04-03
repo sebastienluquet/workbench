@@ -174,7 +174,7 @@ module ToFile
         options << ( e.options[:scope] ? ":scope => #{e.options[:scope].inspect}" : nil )
         options << ( e.options[:minimum] ? ":minimum => #{e.options[:minimum]}" : nil )
         options << ( e.options[:maximum] ? ":maximum => #{e.options[:maximum]}" : nil )
-        options << ( e.options[:with] ? ":with => #{e.options[:with]}" : nil )
+        options << ( e.options[:with] ? ":with => #{e.options[:with].inspect}" : nil )
         options << ( e.options[:within] ? ":within => #{e.options[:within]}" : nil )
         if e.active_record == self
           options = options.compact.join(', ')

@@ -1,9 +1,11 @@
 require 'ruby2ruby'
 
 module ToFile
-  def self.extended(mod)
-    mod.instance_variable_set :@public_instance_methods, mod.public_instance_methods(false) if mod.instance_variable_get(:@public_instance_methods).nil?
-    mod.instance_variable_set :@singleton_methods, mod.singleton_methods(false) if mod.instance_variable_get(:@singleton_methods).nil?
+  def self.extended(obj)
+    if obj.is_a? Module
+      obj.instance_variable_set :@public_instance_methods, obj.public_instance_methods(false) if obj.instance_variable_get(:@public_instance_methods).nil?
+      obj.instance_variable_set :@singleton_methods, obj.singleton_methods(false) if obj.instance_variable_get(:@singleton_methods).nil?
+    end
   end
 
   include Workbench
@@ -119,7 +121,25 @@ module ToFile
         if a.name.to_s != 'thumbnails'
           if c.superclass != ActiveRecord::Base and c.superclass.reflect_on_association(a.name)
           else
-            f.puts "  #{c.name}.has_many '#{a.name.to_s}', #{a.class_name}"
+            if a.class_name.constantize.reflect_on_association(c.name.underscore.to_sym)
+              f.puts "  #{c.name}.one_to_many '#{a.name.to_s}', #{a.class_name}, '#{c.name.underscore}'"
+            else
+              f.puts "  #{c.name}.has_many '#{a.name.to_s}', #{a.class_name}"
+            end
+          end
+        end
+      }
+#      c.reflect_on_all_associations(:has_and_belongs_to_many).delete_if{|e|e.options[:through] or e.options[:finder_sql] or e.class_name.constantize.superclass != ActiveRecord::Base or !classes.include? e.klass}.sort{ |x,y| x.name.to_s <=> y.name.to_s }.each{|a|
+#        if c.superclass != ActiveRecord::Base and c.superclass.reflect_on_association(a.name)
+#        else
+#          f.puts "  #{c.name}.many_to_many '#{a.name.to_s}', #{a.class_name}, #{c.name.underscore.plurialize}"
+#        end
+#      }
+      c.reflect_on_all_associations(:belongs_to).delete_if{|e|e.options[:through] or e.options[:finder_sql] or e.class_name.constantize.superclass != ActiveRecord::Base or !classes.include? e.klass}.sort{ |x,y| x.name.to_s <=> y.name.to_s }.each{|a|
+        if c.superclass != ActiveRecord::Base and c.superclass.reflect_on_association(a.name)
+        else
+          unless a.class_name.constantize.reflect_on_association(c.name.underscore.pluralize.to_sym)
+            f.puts "  #{c.name}.has_one '#{a.name.to_s}', #{a.class_name}"
           end
         end
       }

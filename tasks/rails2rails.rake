@@ -195,16 +195,16 @@ namespace :rails2rails do
         Zz3
       ]
     end
-#    def active_record_models
-#      [
-#        Stage
-#      ]
-#    end
+    def active_record_models
+      [
+        User
+      ]
+    end
     active_record_models.each{|m|
       m.extend ToFile
     }
     active_record_models.each{|m|
-      m.to_file if m != User
+      m.to_file
     }
   end
 end

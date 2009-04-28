@@ -6,3 +6,11 @@ namespace :db do
     generate_fk
   end
 end
+
+namespace :workbench do
+  desc 'Generate ecore file from models file'
+  task :ecore => :environment do
+    extend ToFile
+    metamodel
+  end
+end

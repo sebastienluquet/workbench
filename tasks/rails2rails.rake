@@ -1,6 +1,7 @@
+require 'vendor/plugins/workbench/lib/to_file'
 namespace :rails2rails do
   desc 'Generate workbench file from schema.rb and relation'
-  task :regenerate_models => :environment do
+  task :regenerate_models do
     ActiveRecord::Base.module_eval do
       extend ToFile
       def self.accepts_nested_attributes_options
@@ -100,7 +101,7 @@ namespace :rails2rails do
         super
       end
     end
-
+    Rake::Task['environment'].invoke
     include Workbench
     def active_record_models
       [

@@ -17,6 +17,18 @@ module ToFile
     @singleton_methods ||= []
   end
 
+  def compute_validates_length_of_from_column_limitation
+    if table_exists?
+      columns.each do |c|
+        if c.type == :string
+          unless reflect_on_validations_for(c.name).detect{|cc| cc.macro == :validates_length_of and cc.options[:maximum] }
+            validates_length_of c.name, :maximum => c.limit
+          end
+        end
+      end
+    end
+  end
+
   def update_methods
     update_instance_methods
     update_singleton_methods

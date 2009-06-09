@@ -8,6 +8,15 @@ module ToFile
       obj.instance_variable_set :@singleton_methods, obj.singleton_methods(false) if obj.instance_variable_get(:@singleton_methods).nil?
     end
   end
+
+  def serialized_public_instance_methods
+    @public_instance_methods ||= []
+  end
+
+  def serialized_singleton_methods
+    @singleton_methods ||= []
+  end
+
   def update_methods
     update_instance_methods
     update_singleton_methods
@@ -173,6 +182,7 @@ module ToFile
       }
     end
     if respond_to? 'reflect_on_all_validations'
+      compute_validates_length_of_from_column_limitation
       self.reflect_on_all_validations.sort{ |x,y| [x.macro.to_s, x.name.to_s] <=> [y.macro.to_s, y.name.to_s] }.each do |e|
         options = []
         options << ( e.options[:is] ? ":is => #{e.options[:is]}" : nil )
@@ -209,7 +219,7 @@ module ToFile
     eval "class #{self.name}Temp #{(self.superclass == Object ? '' : ' < ' + self.superclass.to_s)};#{f};end"
 
     (singleton_methods(false) - "ToFile::#{self.name}Temp".constantize.singleton_methods(false) ).sort.each do |meth|
-      if @singleton_methods.include? meth
+      if defined? @singleton_methods and @singleton_methods.include? meth
         t = Ruby2Ruby.new.indent(class_method(meth))
         f.puts t unless t.blank?
       end

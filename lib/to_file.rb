@@ -21,7 +21,7 @@ module ToFile
     instance_variable_set :@singleton_methods, singleton_methods(false)
   end
 
-  include Workbench
+#  include Workbench
   def class_method(meth, s = true)
     proc = method(meth)
     (c = Class.new).class_eval { define_method :proc, proc }
@@ -94,6 +94,13 @@ module ToFile
         end
         options = options.compact.join(', ')
         f.puts "  acts_as_tree" + options
+      elsif m == ActiveRecord::Acts::List::InstanceMethods
+        options = []
+        if respond_to? 'acts_as_list_options'
+          options << ":scope => :#{acts_as_list_options[:acts_as_list][:scope]}" if acts_as_list_options[:acts_as_list] and acts_as_list_options[:acts_as_list][:scope]
+        end
+        options = options.compact.join(', ')
+        f.puts "  acts_as_list " + options
       else
         f.puts "  include #{m}" unless "ToFile::#{self.name}Temp".constantize.ancestors.include? m
       end

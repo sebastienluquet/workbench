@@ -13,6 +13,47 @@ namespace :rails2rails do
       def self.delegate_options
         read_inheritable_attribute(:delegates_options) || write_inheritable_attribute(:delegates_options, {})
       end
+      def self.acts_as_list_options
+        read_inheritable_attribute(:acts_as_list_options) || write_inheritable_attribute(:acts_as_list_options, {})
+      end
+      def self.acts_as_list(options = {})
+        acts_as_list_options[:acts_as_list] = options
+        configuration = { :column => "position", :scope => "1 = 1" }
+        configuration.update(options) if options.is_a?(Hash)
+
+        configuration[:scope] = "#{configuration[:scope]}_id".intern if configuration[:scope].is_a?(Symbol) && configuration[:scope].to_s !~ /_id$/
+
+        if configuration[:scope].is_a?(Symbol)
+          scope_condition_method = %(
+            def scope_condition
+              if #{configuration[:scope].to_s}.nil?
+                "#{configuration[:scope].to_s} IS NULL"
+              else
+                "#{configuration[:scope].to_s} = \#{#{configuration[:scope].to_s}}"
+              end
+            end
+          )
+        else
+          scope_condition_method = "def scope_condition() \"#{configuration[:scope]}\" end"
+        end
+
+        class_eval <<-EOV
+          include ActiveRecord::Acts::List::InstanceMethods
+
+          def acts_as_list_class
+            ::#{self.name}
+          end
+
+          def position_column
+            '#{configuration[:column]}'
+          end
+
+          #{scope_condition_method}
+
+          before_destroy :remove_from_list
+          before_create  :add_to_list_bottom
+        EOV
+      end
       def self.accepts_nested_attributes_for(*attr_names)
         options = { :allow_destroy => false }
         options.update(attr_names.extract_options!)

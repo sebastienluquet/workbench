@@ -322,7 +322,7 @@ module ToFile
 #          f.puts "  #{c.name}.many_to_many '#{a.name.to_s}', #{a.class_name}, #{c.name.underscore.plurialize}"
 #        end
 #      }
-      c.reflect_on_all_associations(:belongs_to).delete_if{|e|e.options[:through] or e.options[:finder_sql] or e.class_name.constantize.superclass != ActiveRecord::Base or !classes.include? e.klass}.sort{ |x,y| x.name.to_s <=> y.name.to_s }.each{|a|
+      c.reflect_on_all_associations(:belongs_to).delete_if{|e|e.options[:through] or e.options[:finder_sql] or !defined? e.class_name.constantize.superclass or e.class_name.constantize.superclass != ActiveRecord::Base or !classes.include? e.klass}.sort{ |x,y| x.name.to_s <=> y.name.to_s }.each{|a|
         if c.superclass != ActiveRecord::Base and c.superclass.reflect_on_association(a.name)
         else
           unless a.class_name.constantize.reflect_on_association(c.name.underscore.pluralize.to_sym)

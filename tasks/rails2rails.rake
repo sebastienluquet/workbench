@@ -1,4 +1,4 @@
-require 'vendor/plugins/workbench/lib/to_file'
+#require 'vendor/plugins/workbench/lib/to_file'
 namespace :rails2rails do
   desc 'Generate workbench file from schema.rb and relation'
   task :regenerate_models do

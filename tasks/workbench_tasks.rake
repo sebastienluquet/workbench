@@ -11,6 +11,7 @@ namespace :workbench do
   desc 'Generate ecore file from models file'
   task :ecore => :environment do
     extend ToFile
+    include Workbench
     metamodel
   end
 end

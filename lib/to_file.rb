@@ -326,7 +326,7 @@ module ToFile
         if c.superclass != ActiveRecord::Base and c.superclass.reflect_on_association(a.name)
         else
           unless a.class_name.constantize.reflect_on_association(c.name.underscore.pluralize.to_sym)
-            f.puts "  #{c.name}.has_one '#{a.name.to_s}', #{a.class_name}"
+            f.puts "  #{c.name}.has_one '#{a.name.to_s}', #{a.class_name.split('::').last}"
           end
         end
       }
